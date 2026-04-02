@@ -26,6 +26,7 @@ This service provides a standardized backend for managing task lifecycles. It im
 | `priority`   | String   | Importance level | `'low'`, `'medium'` (default), `'high'` |
 | `status`     | String   | Current state of the task | `'pending'` (default), `'in-progress'`, `'completed'` |
 | `dueDate`    | String   | ISO-8601 Date string | Optional |
+| `assignee`   | String   | The person assigned to the task | `null` (default), Optional string |
 | `createdAt`  | String   | ISO-8601 timestamp of creation | Auto-generated |
 | `completedAt`| String   | ISO-8601 timestamp of completion | `null` (default), Auto-generated |
 
@@ -49,3 +50,17 @@ During the development and audit of this service, several edge cases were identi
 2. Run `npm install` to install dependencies.
 3. Run `npm start` to initialize the server.
 4. The service will run completely in-memory (data will reset upon server restart).
+
+---
+
+## 📝 Submission Note
+
+**What I'd test next:**
+If I had more time, I would write true boundary-value testing around the pagination offset logic. I'd specifically test `limit=0` and non-numeric query string parameters to definitively assert that `parseInt` fallbacks are ironclad. I would also write integration tests around malformed JSON parsing limits (e.g., payload too large).
+
+**Surprises in the codebase:**
+I was incredibly surprised by the Jest ESM `module is already linked` bug triggering upon concurrent imports within tests. Having to fundamentally restructure how the API exposes singleton instances across Test boundaries versus Runtime environments (via a specialized decoupled reset route instead of indirect app bindings) was a surprisingly deep technical exercise for a simple Express service! 
+
+**Questions before shipping to production:**
+1. What persistency layer are we migrating to (e.g., PostgreSQL, MongoDB), and how stringent do we need transaction locks to be when concurrently executing `completeTask` and `assignTask` against the identical row?
+2. Does the authentication layer inject the tenant scoping directly into `req.user`, or will `taskService` need a robust multi-tenant wrapper?

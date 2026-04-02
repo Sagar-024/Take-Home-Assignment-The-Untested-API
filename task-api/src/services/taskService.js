@@ -8,6 +8,7 @@
  * @property {string} [dueDate] - The optional due date of the task in ISO format.
  * @property {string} createdAt - The creation timestamp in ISO format.
  * @property {string|null} completedAt - The completion timestamp in ISO format.
+ * @property {string|null} assignee - The person assigned to the task.
  */
 
 let tasks = []; 
@@ -36,6 +37,7 @@ const taskService = {
       dueDate,
       createdAt: new Date().toISOString(),
       completedAt: null,
+      assignee: null,
     };
     tasks.push(newTask);
     return newTask;
@@ -50,6 +52,31 @@ const taskService = {
   getPaginated(page = 1, limit = 10) {
     const offset = (page - 1) * limit;
     return tasks.slice(offset, offset + limit);
+  },
+
+  /**
+   * Updates an existing task.
+   * @param {string} id - The task ID.
+   * @param {Object} fields - Fields to update.
+   * @returns {Task|null} The updated task, or null.
+   */
+  update(id, fields) {
+    const index = tasks.findIndex((t) => t.id === id);
+    if (index === -1) return null;
+    tasks[index] = { ...tasks[index], ...fields };
+    return tasks[index];
+  },
+
+  /**
+   * Removes a task.
+   * @param {string} id - The task ID.
+   * @returns {boolean} True if deleted, false if not found.
+   */
+  remove(id) {
+    const index = tasks.findIndex((t) => t.id === id);
+    if (index === -1) return false;
+    tasks.splice(index, 1);
+    return true;
   },
 
   /**
@@ -76,6 +103,23 @@ const taskService = {
       ...tasks[index],
       status: 'completed', 
       completedAt: new Date().toISOString(),
+    };
+    return tasks[index];
+  },
+
+  /**
+   * Assigns a user to a task.
+   * @param {string} id - The unique identifier of the task.
+   * @param {string} assignee - The name of the assignee.
+   * @returns {Task|null} The updated task, or null if the task was not found.
+   */
+  assignTask(id, assignee) {
+    const index = tasks.findIndex((t) => t.id === id);
+    if (index === -1) return null;
+
+    tasks[index] = {
+      ...tasks[index],
+      assignee,
     };
     return tasks[index];
   },

@@ -74,6 +74,20 @@ describe("getStats()", () => {
   });
 });
 
+describe("assignTask()", () => {
+  it("assigns a valid string to the task", () => {
+    const task = taskService.create({ title: "Test Assign" });
+    const updated = taskService.assignTask(task.id, "Alice");
+    expect(updated).not.toBeNull();
+    expect(updated.assignee).toBe("Alice");
+  });
+
+  it("returns null if task does not exist", () => {
+    const updated = taskService.assignTask("invalid-id", "Bob");
+    expect(updated).toBeNull();
+  });
+});
+
 function getByStatus(status) {
   return taskService.getByStatus(status);
 }

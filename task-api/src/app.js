@@ -1,6 +1,5 @@
 import express from "express";
 import taskRoutes from "./routes/tasks.js";
-import taskService from "./services/taskService.js";
 import { fileURLToPath } from "url";
 
 const app = express();
@@ -20,5 +19,4 @@ if (isMainUnit) {
   });
 }
 
-export const __test_taskService = taskService;
 export default app;

@@ -1,8 +1,8 @@
 import request from "supertest";
-import app, { __test_taskService as taskService } from "../src/app.js";
+import app from "../src/app.js";
 
-beforeEach(() => {
-  taskService.clearAll();
+beforeEach(async () => {
+  await request(app).post("/tasks/test/clear");
 });
 
 const createTask = (overrides = {}) =>
@@ -182,6 +182,33 @@ describe("PATCH /tasks/:id/complete", () => {
 
   it("returns 404 for a non-existent task", async () => {
     const res = await request(app).patch("/tasks/ghost-id/complete");
+    expect(res.status).toBe(404);
+  });
+});
+
+describe("PATCH /tasks/:id/assign", () => {
+  it("assigns a task and returns 200 with the updated object", async () => {
+    const created = (await createTask({ title: "Task to assign" })).body;
+    const res = await request(app)
+      .patch(`/tasks/${created.id}/assign`)
+      .send({ assignee: "John Doe" });
+    expect(res.status).toBe(200);
+    expect(res.body.assignee).toBe("John Doe");
+  });
+
+  it("returns 400 for an empty string assignee", async () => {
+    const created = (await createTask({ title: "Task to assign" })).body;
+    const res = await request(app)
+      .patch(`/tasks/${created.id}/assign`)
+      .send({ assignee: "   " });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/assignee/i);
+  });
+
+  it("returns 404 for a non-existent task", async () => {
+    const res = await request(app)
+      .patch("/tasks/ghost-id/assign")
+      .send({ assignee: "John Doe" });
     expect(res.status).toBe(404);
   });
 });

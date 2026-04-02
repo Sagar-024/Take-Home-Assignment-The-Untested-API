@@ -7,9 +7,17 @@ import taskService from "../services/taskService.js";
 import {
   validateCreateTask,
   validateUpdateTask,
+  validateAssignTask,
 } from "../utils/validators.js";
 
 const router = express.Router();
+
+if (process.env.NODE_ENV === "test") {
+  router.post("/test/clear", (req, res) => {
+    taskService.clearAll();
+    res.status(204).send();
+  });
+}
 
 /**
  * GET /stats
@@ -111,6 +119,26 @@ router.delete("/:id", (req, res) => {
  */
 router.patch("/:id/complete", (req, res) => {
   const task = taskService.completeTask(req.params.id);
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+  res.json(task);
+});
+
+/**
+ * PATCH /tasks/:id/assign
+ * Assigns a specific user to a task.
+ * @param {string} req.params.id - The unique identifier of the task.
+ * @param {string} req.body.assignee - The name of the assignee.
+ * @returns {Object} The updated task object with status 200, or error object with status 400 or 404.
+ */
+router.patch("/:id/assign", (req, res) => {
+  const error = validateAssignTask(req.body);
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  const task = taskService.assignTask(req.params.id, req.body.assignee);
   if (!task) {
     return res.status(404).json({ error: "Task not found" });
   }
