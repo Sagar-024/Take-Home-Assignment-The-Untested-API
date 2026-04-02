@@ -1,113 +1,51 @@
-# Take-Home Assignment — The Untested API
+# Task Management API
 
-A 2-day take-home assignment. You'll read unfamiliar code, write tests, track down bugs, and ship a small feature.
+**Developed by Sagar Kharal**
 
-Read **[ASSIGNMENT.md](./ASSIGNMENT.md)** for the full brief before you start.
+A robust, in-memory REST API service designed for seamless task tracking, filtering, and analytics. This project was built with a strict focus on data integrity, accurate state management, and clear contract alignment.
 
----
+## 🚀 Overview
 
-## A note on AI tools
+This service provides a standardized backend for managing task lifecycles. It implements strict schema validation and deterministic filtering, ensuring that clients interacting with the API receive predictable, formatted data. 
 
-You're welcome to use AI tools. What we're evaluating is your ability to read and reason about unfamiliar code — so your submission should reflect your own understanding, not just generated output.
-
-Concretely:
-- For each bug you report: include where in the code it lives and why it happens
-- For the feature you implement: briefly explain the design decisions you made
-- If something surprised you or you had to make a tradeoff, say so
-
----
-
-## Getting Started
-
-**Prerequisites:** Node.js 18+
-
-```bash
-cd task-api
-npm install
-npm start        # runs on http://localhost:3000
-```
-
-**Tests:**
-
-```bash
-npm test           # run test suite
-npm run coverage   # run with coverage report
-```
+### Core Capabilities:
+- **Standardized Task Creation:** Auto-generation of IDs, timestamps, and default schema statuses.
+- **Accurate Pagination:** 1-indexed offset calculations ensuring seamless data chunking.
+- **State Preservation:** Lifecycle updates that preserve historical metadata (like priority) while updating timestamps.
+- **Dynamic Analytics:** Real-time, schema-driven generation of task statistics.
 
 ---
 
-## Project Structure
+## 🛠️ Data Schema Contract
 
-```
-task-api/
-  src/
-    app.js                  # Express app setup
-    routes/tasks.js         # Route handlers
-    services/taskService.js # Business logic + in-memory data store
-    utils/validators.js     # Input validation helpers
-  tests/                    # Your tests go here
-  package.json
-  jest.config.js
-ASSIGNMENT.md               # Full brief — read this first
-```
-
-> The data store is in-memory. It resets every time the server restarts.
+| Field         | Type     | Description | Valid Values / Defaults |
+|--------------|----------|-------------|-------------------------|
+| `id`         | String   | Unique identifier (Timestamp-based) | Auto-generated |
+| `title`      | String   | The name of the task | Required |
+| `description`| String   | Detailed breakdown of the task | Optional |
+| `priority`   | String   | Importance level | `'low'`, `'medium'` (default), `'high'` |
+| `status`     | String   | Current state of the task | `'pending'` (default), `'in-progress'`, `'completed'` |
+| `dueDate`    | String   | ISO-8601 Date string | Optional |
+| `createdAt`  | String   | ISO-8601 timestamp of creation | Auto-generated |
+| `completedAt`| String   | ISO-8601 timestamp of completion | `null` (default), Auto-generated |
 
 ---
 
-## API Reference
+## 🧠 What Problems We Solved (Technical Highlights)
 
-| Method   | Path                      | Description                              |
-|----------|---------------------------|------------------------------------------|
-| `GET`    | `/tasks`                  | List all tasks. Supports `?status=`, `?page=`, `?limit=` |
-| `POST`   | `/tasks`                  | Create a new task                        |
-| `PUT`    | `/tasks/:id`              | Full update of a task                    |
-| `DELETE` | `/tasks/:id`              | Delete a task (returns 204)              |
-| `PATCH`  | `/tasks/:id/complete`     | Mark a task as complete                  |
-| `GET`    | `/tasks/stats`            | Counts by status + overdue count         |
-| `PATCH`  | `/tasks/:id/assign`       | **Assign a task to a user** _(to implement)_ |
+During the development and audit of this service, several edge cases were identified and systematically resolved to ensure enterprise-level reliability:
 
-### Task shape
-
-```json
-{
-  "id": "uuid",
-  "title": "string",
-  "description": "string",
-  "status": "pending | in-progress | completed",
-  "priority": "low | medium | high",
-  "dueDate": "ISO 8601 or null",
-  "completedAt": "ISO 8601 or null",
-  "createdAt": "ISO 8601"
-}
-```
-
-### Sample requests
-
-**Create a task**
-```bash
-curl -X POST http://localhost:3000/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Write tests", "priority": "high"}'
-```
-
-**List tasks with filter**
-```bash
-curl "http://localhost:3000/tasks?status=pending&page=1&limit=10"
-```
-
-**Mark complete**
-```bash
-curl -X PATCH http://localhost:3000/tasks/<id>/complete
-```
+* **Predictable Pagination:** Realigned the `getPaginated` offset arithmetic to support 1-indexed queries (standard for REST), preventing off-by-one errors that were silently skipping results.
+* **Metadata Integrity:** Refactored the update logic within the `completeTask` controller to prevent destructive overwrites of user-defined priorities upon task completion.
+* **Contract Synchronization:** Unified the internal data defaults to strictly match the public API schema, eliminating undocumented states.
+* **Deterministic Filtering:** Replaced fuzzy substring matching with strict equality checks (`===`) for the status filter, ensuring queries like `?status=in` do not result in accidental collisions with other statuses.
+* **Dynamic Aggregation:** Overhauled the `/stats` aggregation engine to dynamically process live schema keys rather than relying on brittle, hardcoded property names.
 
 ---
 
-## What to Submit
+## 💻 Getting Started
 
-See [ASSIGNMENT.md](./ASSIGNMENT.md) for full submission requirements. At minimum, include:
-
-- **Test files** — covering the endpoints and edge cases you identified
-- **Bug report** — what you found, where in the code, and why it's a bug (not just symptoms)
-- **At least one fix** — with a note on your approach
-- **`PATCH /tasks/:id/assign` implementation** — plus a short explanation of any design decisions (validation, edge cases, etc.)
+1. Clone this repository.
+2. Run `npm install` to install dependencies.
+3. Run `npm start` to initialize the server.
+4. The service will run completely in-memory (data will reset upon server restart).

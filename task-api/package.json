@@ -1,12 +1,13 @@
 {
   "name": "task-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "Task Manager API",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "dependencies": {
     "express": "^4.18.2",

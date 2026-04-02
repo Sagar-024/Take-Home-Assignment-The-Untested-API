@@ -1,22 +1,24 @@
-const express = require('express');
-const taskRoutes = require('./routes/tasks');
+import express from "express";
+import taskRoutes from "./routes/tasks.js";
+import taskService from "./services/taskService.js";
+import { fileURLToPath } from "url";
 
 const app = express();
 
 app.use(express.json());
-app.use('/tasks', taskRoutes);
+app.use("/tasks", taskRoutes);
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: "Internal server error" });
 });
 
 const PORT = process.env.PORT || 3000;
 
-if (require.main === module) {
+const isMainUnit = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainUnit) {
   app.listen(PORT, () => {
-    console.log(`Task API running on port ${PORT}`);
   });
 }
 
-module.exports = app;
+export const __test_taskService = taskService;
+export default app;

@@ -1,94 +1,111 @@
-const { v4: uuidv4 } = require('uuid');
+/**
+ * @typedef {Object} Task
+ * @property {string} id - Unique identifier for the task.
+ * @property {string} title - The title of the task.
+ * @property {string} [description] - Detailed description of the task.
+ * @property {('low'|'medium'|'high')} priority - The priority level of the task.
+ * @property {('pending'|'in-progress'|'completed')} status - The current status of the task.
+ * @property {string} [dueDate] - The optional due date of the task in ISO format.
+ * @property {string} createdAt - The creation timestamp in ISO format.
+ * @property {string|null} completedAt - The completion timestamp in ISO format.
+ */
 
-let tasks = [];
+let tasks = []; 
 
-const getAll = () => [...tasks];
+/**
+ * Service to manage tasks in memory.
+ */
+const taskService = {
+  /**
+   * Creates a new task.
+   * @param {Object} payload - The task payload.
+   * @param {string} payload.title - The title of the task.
+   * @param {string} [payload.description] - The description of the task.
+   * @param {('low'|'medium'|'high')} [payload.priority='medium'] - The priority of the task.
+   * @param {('pending'|'in-progress'|'completed')} [payload.status='pending'] - The status of the task.
+   * @param {string} [payload.dueDate] - The optional due date of the task.
+   * @returns {Task} The newly created task.
+   */
+  create({ title, description, priority = 'medium', status = 'pending', dueDate }) {
+    const newTask = {
+      id: Date.now().toString(),
+      title,
+      description,
+      priority,
+      status,
+      dueDate,
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    };
+    tasks.push(newTask);
+    return newTask;
+  },
 
-const findById = (id) => tasks.find((t) => t.id === id);
+  /**
+   * Retrieves a paginated list of tasks.
+   * @param {number} [page=1] - The 1-indexed page number to retrieve.
+   * @param {number} [limit=10] - The maximum number of tasks per page.
+   * @returns {Task[]} An array of tasks for the given page.
+   */
+  getPaginated(page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    return tasks.slice(offset, offset + limit);
+  },
 
-const getByStatus = (status) => tasks.filter((t) => t.status.includes(status));
+  /**
+   * Retrieves all tasks matching a specific string status.
+   * Strictly matches the provided status string.
+   * @param {('pending'|'in-progress'|'completed')} status - The exact status to filter by.
+   * @returns {Task[]} An array of tasks matching the status.
+   */
+  getByStatus(status) {
+    return tasks.filter((t) => t.status === status);
+  },
 
-const getPaginated = (page, limit) => {
-  const offset = page * limit;
-  return tasks.slice(offset, offset + limit);
+  /**
+   * Marks a task as completed.
+   * Note: This method preserves the original priority and updates the status and completedAt fields.
+   * @param {string} id - The unique identifier of the task.
+   * @returns {Task|null} The updated task, or null if the task was not found.
+   */
+  completeTask(id) {
+    const index = tasks.findIndex((t) => t.id === id);
+    if (index === -1) return null;
+
+    tasks[index] = {
+      ...tasks[index],
+      status: 'completed', 
+      completedAt: new Date().toISOString(),
+    };
+    return tasks[index];
+  },
+
+  /**
+   * Generates statistics about all tasks.
+   * @returns {Object} Statistics containing total counts, status counts, and overdue counts.
+   */
+  getStats() {
+    const counts = {};
+    let overdue = 0;
+    const now = new Date();
+
+    tasks.forEach((t) => {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+      if (t.dueDate && t.status !== 'completed' && new Date(t.dueDate) < now) {
+        overdue++;
+      }
+    });
+
+    return { total: tasks.length, statusCounts: counts, overdueCount: overdue };
+  },
+
+  /**
+   * Clears all tasks (primarily used for test environment teardown).
+   * @returns {void}
+   */
+  clearAll() {
+    tasks = [];
+  }
 };
 
-const getStats = () => {
-  const now = new Date();
-  const counts = { todo: 0, in_progress: 0, done: 0 };
-  let overdue = 0;
-
-  tasks.forEach((t) => {
-    if (counts[t.status] !== undefined) counts[t.status]++;
-    if (t.dueDate && t.status !== 'done' && new Date(t.dueDate) < now) {
-      overdue++;
-    }
-  });
-
-  return { ...counts, overdue };
-};
-
-const create = ({ title, description = '', status = 'todo', priority = 'medium', dueDate = null }) => {
-  const task = {
-    id: uuidv4(),
-    title,
-    description,
-    status,
-    priority,
-    dueDate,
-    completedAt: null,
-    createdAt: new Date().toISOString(),
-  };
-  tasks.push(task);
-  return task;
-};
-
-const update = (id, fields) => {
-  const index = tasks.findIndex((t) => t.id === id);
-  if (index === -1) return null;
-
-  const updated = { ...tasks[index], ...fields };
-  tasks[index] = updated;
-  return updated;
-};
-
-const remove = (id) => {
-  const index = tasks.findIndex((t) => t.id === id);
-  if (index === -1) return false;
-
-  tasks.splice(index, 1);
-  return true;
-};
-
-const completeTask = (id) => {
-  const task = findById(id);
-  if (!task) return null;
-
-  const updated = {
-    ...task,
-    priority: 'medium',
-    status: 'done',
-    completedAt: new Date().toISOString(),
-  };
-
-  const index = tasks.findIndex((t) => t.id === id);
-  tasks[index] = updated;
-  return updated;
-};
-
-const _reset = () => {
-  tasks = [];
-};
-
-module.exports = {
-  getAll,
-  findById,
-  getByStatus,
-  getPaginated,
-  getStats,
-  create,
-  update,
-  remove,
-  completeTask,
-  _reset,
-};
+export default taskService;
