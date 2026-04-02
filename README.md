@@ -4,7 +4,7 @@
 
 A robust, in-memory REST API service designed for seamless task tracking, filtering, and analytics. This project was built with a strict focus on data integrity, accurate state management, and clear contract alignment.
 
-## 🚀 Overview
+##  Overview
 
 This service provides a standardized backend for managing task lifecycles. It implements strict schema validation and deterministic filtering, ensuring that clients interacting with the API receive predictable, formatted data. 
 
@@ -16,7 +16,7 @@ This service provides a standardized backend for managing task lifecycles. It im
 
 ---
 
-## 🛠️ Data Schema Contract
+##  Data Schema Contract
 
 | Field         | Type     | Description | Valid Values / Defaults |
 |--------------|----------|-------------|-------------------------|
@@ -32,7 +32,7 @@ This service provides a standardized backend for managing task lifecycles. It im
 
 ---
 
-## 🧠 What Problems We Solved (Technical Highlights)
+##  What Problems We Solved (Technical Highlights)
 
 During the development and audit of this service, several edge cases were identified and systematically resolved to ensure enterprise-level reliability:
 
@@ -44,7 +44,7 @@ During the development and audit of this service, several edge cases were identi
 
 ---
 
-## 💻 Getting Started
+##  Getting Started
 
 1. Clone this repository.
 2. Run `npm install` to install dependencies.
@@ -53,7 +53,7 @@ During the development and audit of this service, several edge cases were identi
 
 ---
 
-## 📝 Submission Note
+##  Submission Note
 
 **What I'd test next:**
 If I had more time, I would write true boundary-value testing around the pagination offset logic. I'd specifically test `limit=0` and non-numeric query string parameters to definitively assert that `parseInt` fallbacks are ironclad. I would also write integration tests around malformed JSON parsing limits (e.g., payload too large).
