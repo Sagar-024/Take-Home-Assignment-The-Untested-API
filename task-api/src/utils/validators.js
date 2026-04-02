@@ -1,5 +1,7 @@
-const VALID_STATUSES = ["pending", "in-progress", "completed"];
-const VALID_PRIORITIES = ["low", "medium", "high"];
+import { TASK_STATUS, TASK_PRIORITY } from "../constants.js";
+
+const VALID_STATUSES = Object.values(TASK_STATUS);
+const VALID_PRIORITIES = Object.values(TASK_PRIORITY);
 
 export const validateCreateTask = (body) => {
   if (
@@ -7,16 +9,16 @@ export const validateCreateTask = (body) => {
     typeof body.title !== "string" ||
     body.title.trim() === ""
   ) {
-    return "title is required and must be a non-empty string";
+    return "Invalid or missing 'title'. It must be a non-empty string.";
   }
   if (body.status && !VALID_STATUSES.includes(body.status)) {
-    return `status must be one of: ${VALID_STATUSES.join(", ")}`;
+    return `Invalid 'status' provided. Expected one of: ${VALID_STATUSES.join(", ")}.`;
   }
   if (body.priority && !VALID_PRIORITIES.includes(body.priority)) {
-    return `priority must be one of: ${VALID_PRIORITIES.join(", ")}`;
+    return `Invalid 'priority' provided. Expected one of: ${VALID_PRIORITIES.join(", ")}.`;
   }
   if (body.dueDate && isNaN(Date.parse(body.dueDate))) {
-    return "dueDate must be a valid ISO date string";
+    return "Invalid 'dueDate'. It must be a properly formatted ISO date string.";
   }
   return null;
 };
@@ -26,16 +28,16 @@ export const validateUpdateTask = (body) => {
     body.title !== undefined &&
     (typeof body.title !== "string" || body.title.trim() === "")
   ) {
-    return "title must be a non-empty string";
+    return "Invalid 'title'. If provided, it must be a non-empty string.";
   }
   if (body.status && !VALID_STATUSES.includes(body.status)) {
-    return `status must be one of: ${VALID_STATUSES.join(", ")}`;
+    return `Invalid 'status' provided. Expected one of: ${VALID_STATUSES.join(", ")}.`;
   }
   if (body.priority && !VALID_PRIORITIES.includes(body.priority)) {
-    return `priority must be one of: ${VALID_PRIORITIES.join(", ")}`;
+    return `Invalid 'priority' provided. Expected one of: ${VALID_PRIORITIES.join(", ")}.`;
   }
   if (body.dueDate && isNaN(Date.parse(body.dueDate))) {
-    return "dueDate must be a valid ISO date string";
+    return "Invalid 'dueDate'. It must be a properly formatted ISO date string.";
   }
   return null;
 };
@@ -46,7 +48,7 @@ export const validateAssignTask = (body) => {
     typeof body.assignee !== "string" ||
     body.assignee.trim() === ""
   ) {
-    return "assignee is required and must be a non-empty string";
+    return "Invalid or missing 'assignee'. It must be a non-empty string representing the user's name.";
   }
   return null;
 };

@@ -21,8 +21,8 @@ if (process.env.NODE_ENV === "test") {
 
 /**
  * GET /stats
- * Retrieves global statistics for all tasks.
- * @returns {Object} Application statistics including total counts, counts by status, and overdue tasks.
+ * Exposes real-time analytical aggregations for the frontend dashboard.
+ * Evaluates live objects dynamically instead of relying on cached counters to guarantee accuracy.
  */
 router.get("/stats", (req, res) => {
   const stats = taskService.getStats();
@@ -31,11 +31,8 @@ router.get("/stats", (req, res) => {
 
 /**
  * GET /tasks
- * Retrieves a paginated list of tasks, optionally filtered by status.
- * @param {string} [req.query.status] - Filter tasks by an exact status string (e.g., 'pending', 'in-progress', 'completed').
- * @param {number} [req.query.page=1] - The 1-indexed page number for pagination.
- * @param {number} [req.query.limit=10] - The number of tasks per page.
- * @returns {Array} A paginated array of tasks.
+ * Master collection endpoint supporting query-params for strict subset filtering.
+ * Applies zero-indexed server-side math mapped dynamically to 1-indexed client queries.
  */
 router.get("/", (req, res) => {
   const { status, page, limit } = req.query;
@@ -55,9 +52,7 @@ router.get("/", (req, res) => {
 
 /**
  * POST /tasks
- * Creates a new task.
- * @param {Object} req.body - Configuration object for the task.
- * @returns {Object} The created task object with status 201, or error object with status 400 if validation fails.
+ * Ingress point for new task allocations. Bounds properties against strict business rules.
  */
 router.post("/", (req, res) => {
   const error = validateCreateTask(req.body);
@@ -71,10 +66,7 @@ router.post("/", (req, res) => {
 
 /**
  * PUT /tasks/:id
- * Updates an existing task.
- * @param {string} req.params.id - The unique identifier of the task.
- * @param {Object} req.body - The updated fields for the task.
- * @returns {Object} The updated task object, or an error object if validation fails or task is not found.
+ * Blindly overrides arbitrary payload values. Restricted exclusively to fully-validated properties spanning the base schema.
  */
 router.put("/:id", (req, res) => {
   const error = validateUpdateTask(req.body);
@@ -83,54 +75,47 @@ router.put("/:id", (req, res) => {
   }
 
   if (typeof taskService.update !== 'function') {
-    return res.status(501).json({ error: "Method missing from taskService" });
+    return res.status(501).json({ error: "Service configuration error: update() intercept missing on provider." });
   }
 
   const task = taskService.update(req.params.id, req.body);
   if (!task) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ error: "Task update failed. No task found matching the provided identifier." });
   }
   res.json(task);
 });
 
 /**
  * DELETE /tasks/:id
- * Deletes a task by ID.
- * @param {string} req.params.id - The unique identifier of the task.
- * @returns {void} 204 No Content on success, or 404 if not found.
+ * Hard-deletes target elements from underlying storage. Breaks historical reference limits.
  */
 router.delete("/:id", (req, res) => {
   if (typeof taskService.remove !== 'function') {
-    return res.status(501).json({ error: "Method missing from taskService" });
+    return res.status(501).json({ error: "Service configuration error: remove() intercept missing on provider." });
   }
 
   const deleted = taskService.remove(req.params.id);
   if (!deleted) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ error: "Task deletion failed. No task found matching the provided identifier." });
   }
   res.status(204).send();
 });
 
 /**
  * PATCH /tasks/:id/complete
- * Marks a task as completed and preserves its priority.
- * @param {string} req.params.id - The unique identifier of the task.
- * @returns {Object} The completed task object, or an error object with status 404 if not found.
+ * Dedicated lifecycle closure method. Guarantees safety of historical metadata hooks when flagging closure states.
  */
 router.patch("/:id/complete", (req, res) => {
   const task = taskService.completeTask(req.params.id);
   if (!task) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ error: "Completion failed. No task found matching the provided identifier." });
   }
   res.json(task);
 });
 
 /**
  * PATCH /tasks/:id/assign
- * Assigns a specific user to a task.
- * @param {string} req.params.id - The unique identifier of the task.
- * @param {string} req.body.assignee - The name of the assignee.
- * @returns {Object} The updated task object with status 200, or error object with status 400 or 404.
+ * Unidirectional assignment hook binding specific external identities strictly onto the internal timeline.
  */
 router.patch("/:id/assign", (req, res) => {
   const error = validateAssignTask(req.body);
@@ -140,7 +125,7 @@ router.patch("/:id/assign", (req, res) => {
 
   const task = taskService.assignTask(req.params.id, req.body.assignee);
   if (!task) {
-    return res.status(404).json({ error: "Task not found" });
+    return res.status(404).json({ error: "Assignment failed. No task found matching the provided identifier." });
   }
   res.json(task);
 });
